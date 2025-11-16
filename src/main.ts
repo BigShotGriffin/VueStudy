@@ -1,7 +1,18 @@
 import './assets/main.css'
 
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
+import { setupMockServer } from './mocks'
 
-createApp(App).use(router).mount('#app')
+if (import.meta.env.DEV) {
+  setupMockServer()
+}
+
+const app = createApp(App)
+const pinia = createPinia()
+
+app.use(pinia)
+app.use(router)
+app.mount('#app')

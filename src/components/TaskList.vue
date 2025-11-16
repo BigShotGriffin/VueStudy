@@ -1,47 +1,51 @@
 <template>
   <!-- 任务列表 -->
   <div class="task-list">
-    <div 
-      v-for="(task, index) in tasks" 
-      :key="getTaskIndex(task)" 
-      class="task-item"
-      :class="{ completed: task.completed }"
-    >
-      <input 
-        type="checkbox" 
-        v-model="task.completed"
-        class="task-checkbox"
-      />
-      <span class="task-text">{{ task.text }}</span>
-      <button @click="deleteTask(getTaskIndex(task))" class="delete-btn">删除</button>
-    </div>
+    <div v-if="loading" class="task-state">正在加载任务...</div>
+    <div v-else-if="!tasks.length" class="task-state">暂无任务，快去添加吧！</div>
+    <template v-else>
+      <div
+        v-for="task in tasks"
+        :key="task.id"
+        class="task-item"
+        :class="{ completed: task.completed }"
+      >
+        <input
+          type="checkbox"
+          :checked="task.completed"
+          class="task-checkbox"
+          @change="toggleTask(task)"
+        />
+        <span class="task-text">{{ task.text }}</span>
+        <button @click="deleteTask(task.id)" class="delete-btn">删除</button>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-interface Task {
-  text: string;
-  completed: boolean;
-}
+import type { Task } from '../types/task'
 
 interface Props {
-  tasks: Task[];
+  tasks: Task[]
+  loading?: boolean
 }
 
 interface Emits {
-  (e: 'delete', index: number): void;
+  (e: 'delete', id: number): void
+  (e: 'toggle', task: Task): void
 }
 
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
 
-const deleteTask = (index: number) => {
-  emit('delete', index);
-};
+const deleteTask = (id: number) => {
+  emit('delete', id)
+}
 
-const getTaskIndex = (targetTask: Task) => {
-  return props.tasks.findIndex(task => task === targetTask);
-};
+const toggleTask = (task: Task) => {
+  emit('toggle', task)
+}
 </script>
 
 <style scoped>
@@ -94,5 +98,13 @@ const getTaskIndex = (targetTask: Task) => {
 
 .delete-btn:hover {
   background-color: #da190b;
+}
+
+.task-state {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  background-color: #f9f9f9;
+  border-radius: 8px;
 }
 </style>

@@ -1,13 +1,14 @@
 <template>
   <div class="app">
     <!-- 导航栏 -->
-    <nav class="nav" v-if="authStore.isLoggedIn.value">
+    <nav class="nav" v-if="authStore.isLoggedIn">
       <div class="nav-left">
         <router-link to="/todo" class="nav-link">待办清单</router-link>
         <router-link to="/timer" class="nav-link">计时器</router-link>
+        <router-link to="/exams" class="nav-link">考试成绩</router-link>
       </div>
       <div class="nav-right">
-        <span class="username">欢迎，{{ authStore.username.value }}</span>
+        <span class="username">欢迎，{{ authStore.username }}</span>
         <button @click="handleLogout" class="logout-btn">退出登录</button>
       </div>
     </nav>

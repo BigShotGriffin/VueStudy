@@ -1,0 +1,15 @@
+[
+  {
+    "text": "学习 Vue 3",
+    "completed": false
+  },
+  {
+    "text": "完成项目作业",
+    "completed": true
+  },
+  {
+    "text": "完成作业",
+    "completed": false
+  }
+]
+

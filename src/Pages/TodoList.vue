@@ -15,7 +15,9 @@
     <!-- 任务列表组件 -->
     <TaskList 
       :tasks="filteredTasks" 
+      :loading="isLoading"
       @delete="deleteTask"
+      @toggle="toggleTaskStatus"
     />
     
     <!-- 统计信息 -->
@@ -26,21 +28,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import TaskList from '../components/TaskList.vue';
-import Filter from '../components/Filter.vue';
-import AddTask from '../components/AddTask.vue';
+import { ref, computed, onMounted } from 'vue'
+import TaskList from '../components/TaskList.vue'
+import Filter from '../components/Filter.vue'
+import AddTask from '../components/AddTask.vue'
+import { fetchTasks, createTask, removeTask, updateTask } from '../services/taskService'
+import type { Task } from '../types/task'
 
-interface Task {  //定义任务的结构体
-  text: string;  //任务名
-  completed: boolean;  //任务是否完成
-}
-
-const currentFilter = ref('all')  //筛选完成情况，默认显示所有任务
-const tasks = ref<Task[]>([  //初始任务列表
-  { text: '学习 Vue 3', completed: false },
-  { text: '完成项目作业', completed: true }
-])
+const isLoading = ref(false)
+const currentFilter = ref('all')
+const tasks = ref<Task[]>([])
 
 const filters = [
   { label: '全部', value: 'all' },
@@ -48,33 +45,50 @@ const filters = [
   { label: '已完成', value: 'completed' }
 ]
 
-const addTask = (text: string) => {
-  tasks.value.push({  //把新任务添加到tasks表格最后
-    text: text,  //新任务名
-    completed: false  //新任务默认未完成
-  })
+const loadTasks = async () => {
+  isLoading.value = true
+  try {
+    tasks.value = await fetchTasks()
+  } finally {
+    isLoading.value = false
+  }
 }
 
-const deleteTask = (index: number) => {
-  tasks.value.splice(index, 1)
+onMounted(() => {
+  loadTasks()
+})
+
+const addTask = async (text: string) => {
+  const newTask = await createTask(text)
+  tasks.value.push(newTask)
 }
 
-const filteredTasks = computed(() => {    //filteredTasks是筛选后的任务列表，根据currentFilter的值，过滤任务列表
-  switch (currentFilter.value) {  //根据当前筛选条件，过滤任务列表
+const deleteTask = async (id: number) => {
+  await removeTask(id)
+  tasks.value = tasks.value.filter(task => task.id !== id)
+}
+
+const toggleTaskStatus = async (task: Task) => {
+  const updatedTask = await updateTask({ id: task.id, completed: !task.completed })
+  tasks.value = tasks.value.map(item => (item.id === task.id ? updatedTask : item))
+}
+
+const filteredTasks = computed(() => {
+  switch (currentFilter.value) {
     case 'completed':
-      return tasks.value.filter(task => task.completed)  //返回已完成任务
+      return tasks.value.filter(task => task.completed)
     case 'pending':
-      return tasks.value.filter(task => !task.completed)  //返回未完成任务
+      return tasks.value.filter(task => !task.completed)
     default:
-      return tasks.value  //返回所有任务
+      return tasks.value
   }
 })
 
-const completedTasks = computed(() => 
+const completedTasks = computed(() =>
   tasks.value.filter(task => task.completed).length
 )
 
-const pendingTasks = computed(() => 
+const pendingTasks = computed(() =>
   tasks.value.filter(task => !task.completed).length
 )
 </script>
